@@ -100,3 +100,41 @@ The tuned forest is the final model. It has the best accuracy by CV F1 (0.465 ag
 **Leakage experiment (validation F1 at 0.5).** Clean tuned forest 0.441; leaky forest with `chargeback_filed` as a 27th and last column 0.797. The leaky score is not a result to be proud of because `chargeback_filed` is only filed after the payment settles, so at decision time the model would never have it. It lets the model read the answer instead of learning fraud behaviour, and would collapse in production.
 
 **Top five feature importances.** `amount_vs_avg_ratio` 0.270, `txn_count_last_24h` 0.178, `amount_inr` 0.134, `account_age_days` 0.084, `distance_from_home_km` 0.071. Fraudsters spend far more than the customer's usual amount and make many payments in a short window before the account is blocked.
+
+## Part C results
+
+*Retrieval (TF-IDF, default settings, cosine similarity).* In-scope top-1 hits: 8 of 8.
+
+| Query | Expected | Retrieved | Score |
+|---|---|---|---|
+| card payment above INR 50000 from a new device | P1 | P1 | 0.5501 |
+| how many UPI payments in 24 hours trigger a velocity alert | P2 | P2 | 0.5622 |
+| payment at 3 AM far away from the home city | P3 | P3 | 0.4948 |
+| customer reports unauthorised payment and chargeback case | P4 | P4 | 0.5689 |
+| electronics merchant payment on an account younger than 30 days | P5 | P5 | 0.5641 |
+| which payments are approved automatically without manual review | P6 | P6 | 0.6250 |
+| temporary hold on repeated UPI payments within a day | P2 | P2 | 0.4862 |
+| what happens after a customer reports an unauthorised payment | P4 | P4 | 0.4867 |
+| what is the cafeteria menu today | none | P3 | 0.4251 |
+| how do I reset my email password | none | P1 | 0.0000 |
+
+MIN_SCORE = *0.45*: the highest out-of-scope score is 0.4251 and the lowest in-scope score is 0.4862, so 0.45 lies above the first and below the second. All eight in-scope queries are answered and both out-of-scope queries return no_policy_match.
+
+*Scenario run* (python casenote.py, after mock_llm.reset()):
+
+| Scenario | Retrieved policy | Attempts | Failures | Status | Safe default | Final action | Override |
+|---|---|---|---|---|---|---|---|
+| S1 (T900001) | P1 | 1 | [] | ok | no | hold_for_review | no |
+| S2 (T900002) | P2 | 2 | [1] | ok | no | hold_for_review | no |
+| S3 (T900003) | P3 | 2 | [2] | ok | no | hold_for_review | no |
+| S4 (T900004) | P4 | 2 | [3] | ok | no | block_and_notify | no |
+| S5 (T900005) | P5 | 3 | [1, 1, 1] | ok | yes | hold_for_review | no |
+| S6 (T900006) | P2 | 1 | [] | ok | no | hold_for_review | yes |
+| S7 (T900007) | P1 | 2 | [3] | ok | no | hold_for_review | no |
+| S8 (T900008) | P4 | 1 | [] | ok | no | block_and_notify | no |
+| S9 (T900009) | P3 | 3 | [1, 2] | ok | no | hold_for_review | no |
+| S10 (T900010) | P2 | 2 | [3] | ok | no | hold_for_review | no |
+
+Totals: 19 model calls; 3 scenarios valid on the first call (S1, S6, S8); 6 recovered by retry (S2, S3, S4, S7, S9, S10); 1 safe default (S5); 1 guardrail override (S6).
+
+A hosted model samples text, so an identical prompt can return broken JSON, drop a field or pick an invalid value on two calls in a row, and an upgrade or an overloaded server can change its behaviour without notice. Gate 1 to 3 catch malformed output, the retry gives a transient fault a second chance, the safe default stops bad text from reaching an analyst, and the guardrail catches a well-formed note that is still wrong (an approve for a risky payment). A hosted model gives no guarantee that its output is both well-formed and sensible, so the checks are necessary rather than optional.
