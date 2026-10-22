@@ -1,0 +1,10 @@
+2026-10-22 17:15:21,448 INFO /score status=200 latency_ms=213.5 txn_id=T800001 fraud_probability=0.0430
+2026-10-22 17:15:21,540 INFO /score status=200 latency_ms=80.4 txn_id=T800002 fraud_probability=0.9597
+2026-10-22 17:15:21,600 WARNING /score status=200 latency_ms=52.9 txn_id=T800003 fraud_probability=0.1765 guardrail_override=true
+2026-10-22 17:15:21,635 WARNING /score status=400 latency_ms=6.6
+2026-10-22 17:15:21,672 WARNING /score status=422 latency_ms=2.5
+2026-10-22 17:15:21,820 INFO /case status=200 latency_ms=100.8 txn_id=T900002 fraud_probability=0.9597
+2026-10-22 17:15:21,946 WARNING /case status=200 latency_ms=105.1 txn_id=T900005 fraud_probability=0.9597 safe_default=true
+2026-10-22 17:15:22,066 ERROR /case status=503 latency_ms=112.2 txn_id=T900099 fraud_probability=0.9597
+2026-10-22 17:15:22,149 INFO /case status=200 latency_ms=75.5 txn_id=T800001 fraud_probability=0.0430
+2026-10-22 17:15:22,281 INFO /case status=200 latency_ms=117.5 txn_id=T800006 fraud_probability=0.9597
