@@ -13,8 +13,8 @@ The model is trained at start-up (about 80 seconds) and never saved to disk. No 
 Python 3.11 or newer. Run every command from the repository root. Replace `<user>/<repo>` with this repository's path.
 
 ```bash
-git clone https://github.com/<user>/<repo>.git
-cd <repo>
+git clone https://github.com/pri-13/Razorpay-Merchant-Risk-Desk.git
+cd Razorpay-Merchant-Risk-Desk
 
 python -m venv .venv
 # Windows PowerShell:  .venv\Scripts\Activate.ps1
@@ -25,7 +25,7 @@ python -m pip install -r requirements.txt
 
 python -m generate_data      # prints "rows written: 6090"; MD5 of transactions_raw.csv = 8716797e8bc1a477df5f52cbc8aae3b8
 python -m prepare            # Part A audit and checkpoints
-python -m train              # Part B tables (about 80 s)
+python -m train              # Part B tables
 python -m retrieval          # Part C retrieval table
 python -m casenote           # Part C scenario table
 ```
